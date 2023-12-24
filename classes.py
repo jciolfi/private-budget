@@ -9,18 +9,18 @@ class TransactionSource(Enum):
     BOFA = (4, "Bank of America")
 
 class Month(Enum):
-    JAN = (1, "January")
-    FEB = (2, "February")
-    MAR = (3, "March")
-    APR = (4, "April")
-    MAY = (5, "May")
-    JUN = (6, "June")
-    JUL = (7, "July")
-    AUG = (8, "August")
-    SEP = (9, "September")
-    OCT = (10, "October")
-    NOV = (11, "November")
-    DEC = (12, "December")
+    JAN = (1, "Jan", "January")
+    FEB = (2, "Feb", "February")
+    MAR = (3, "Mar", "March")
+    APR = (4, "Apr", "April")
+    MAY = (5, "May", "May")
+    JUN = (6, "Jun", "June")
+    JUL = (7, "Jul", "July")
+    AUG = (8, "Aug", "August")
+    SEP = (9, "Sep", "September")
+    OCT = (10, "Oct", "October")
+    NOV = (11, "Nov", "November")
+    DEC = (12, "Dec", "December")
     
 @dataclass
 class Transaction:
