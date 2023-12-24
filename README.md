@@ -8,11 +8,10 @@
 - generate to sankeymatic?
 
 # TODOs
-- intake goals as csv by category (percentage spend/actual value by category?)
-  - create pie chart of goal spend by category
-- intake monthly income (just a parameter - single number)
+- intake actual monthly income (salary + other income)
   - line chart of x axis = days of month, y axis = money spent
-  - bar chart of income vs. total expenditure (net gain/loss under it)
-- way to append comments as list after viewing the report
+- way to append comments to report (input as list) after viewing
+
+
 - generating sankeymatic chart
   - income -> expenses at each category, rest is saved

@@ -4,7 +4,7 @@ from classes import Transaction, TransactionSource
 from bs4 import BeautifulSoup
 from collections import defaultdict 
 
-class TransactionExtractor:
+class Importer:
     def __init__(self):
         pass
     
@@ -95,6 +95,6 @@ class TransactionExtractor:
         
         
 if __name__ == "__main__":
-    t = TransactionExtractor()
+    i = Importer()
     # t.extract(TransactionSource.C1, "statements/nov_23_s1.html", Month.NOV, 2023)
-    t.extract(TransactionSource.C1, "statements/bulk_2023.html")
+    i.extract(TransactionSource.C1, "statements/bulk_2023.html")
