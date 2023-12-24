@@ -9,7 +9,6 @@
 
 # TODOs
 - intake actual monthly income (salary + other income)
-  - line chart of x axis = days of month, y axis = money spent
 - way to append comments to report (input as list) after viewing
 
 

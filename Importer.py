@@ -6,13 +6,18 @@ from collections import defaultdict
 
 class Importer:
     def __init__(self):
-        pass
+        pass        
     
-    def extract(self, source, filepath, year=None):            
+    def run(self, source, filepath, year, salary, capital_gains, other_income):
+        transactions = self.extract(source, filepath, year)
+        self.export_transactions(transactions, salary, capital_gains, other_income)
+    
+    # extract transactions based on bank
+    def extract(self, source, filepath, year):            
         if not year:
             year = datetime.datetime.now().date().year
             
-        transactions = []
+        transactions = None
         match source:
             case TransactionSource.C1:
                 transactions = self.import_c1(filepath, year)
@@ -28,10 +33,11 @@ class Importer:
         
         if not transactions:
             print(f"Warning: could not find any transactions in {filepath}")
-            return 
         
-        self.export_transactions(transactions)            
+        return transactions
             
+    
+    # find value of item with given classname
     def find_item_c1(self, html, tag, classname):
         try:
             if tag == "c1-ease-cell":
@@ -43,6 +49,8 @@ class Importer:
         except:
             return None 
     
+    
+    # import Capital One transactions
     def import_c1(self, filepath, year):
         transactions = defaultdict(list)
         with open(filepath, "r") as in_file:
@@ -62,26 +70,24 @@ class Importer:
                     desc = self.find_item_c1(row, "div", "c1-ease-txns-description__description")
                     category = self.find_item_c1(row, "span", "c1-ease-card-transactions-view-table__rewards-category")
                     if category and month and day and desc and amt:
-                        transactions[f"{month}_{year}"].append(Transaction(f"{day} {month}", desc, category, float(amt)))
+                        transactions[(month, year)].append(Transaction(f"{day} {month}", desc, category, float(amt)))
         
         return transactions
         
     def import_disc(self, filepath):
-        with open(filepath, "r") as in_file:
-            pass
+        raise NotImplementedError("Discover not implemented")
     
     def import_sofi(self, filepath):
-        with open(filepath, "r") as in_file:
-            pass
+        raise NotImplementedError("SoFi not implemented")
     
     def import_bofa(self, filepath):
-        with open(filepath, "r") as in_file:
-            pass
+        raise NotImplementedError("Bofa not implemented")
     
     
-    def export_transactions(self, transactions):
-        for month_year in transactions:
-            out_filename = f"transactions/{month_year}.csv"
+    # append transactions to a csv
+    def export_transactions(self, transactions, salary, capital_gains, other_income):
+        for (month, year) in transactions:
+            out_filename = f"actual/{month}_{year}.csv"
             add_header = False
             if not exists(out_filename):
                 add_header = True
@@ -89,12 +95,17 @@ class Importer:
                 writer = csv.writer(out_file)
                 if add_header:
                     writer.writerow(["Date", "Description", "Category", "Amount"])
-                for t in sorted(transactions[month_year], key=lambda t: t.date):
+                for t in sorted(transactions[(month, year)], key=lambda t: t.date):
                     writer.writerow([t.date, t.desc, t.category, t.amt])
-            
+                    
+                # add salary figures
+                writer.writerow(["","Salary Income","Salary", salary])
+                writer.writerow(["","Capital Gains","Capital Gains", capital_gains])
+                writer.writerow(["","Other Income","Other Income", other_income])
         
         
 if __name__ == "__main__":
     i = Importer()
     # t.extract(TransactionSource.C1, "statements/nov_23_s1.html", Month.NOV, 2023)
-    i.extract(TransactionSource.C1, "statements/bulk_2023.html")
+    # i.extract(TransactionSource.C1, "statements/bulk_2023.html")
+    i.run(TransactionSource.C1, "statements/bulk_2023.html", None, 1, 2, 3)
