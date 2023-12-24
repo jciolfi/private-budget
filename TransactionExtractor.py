@@ -28,27 +28,40 @@ class TransactionExtractor:
         self.export_transactions(transactions, f"{month.value[0]}_{year}.csv")            
             
     def find_item(self, html, tag, classname):
-        if tag == "c1-ease-cell":
-            amt_html = html.find(tag, {"class": classname})
-            for span in amt_html:
-                return span.text.strip()
+        try:
+            if tag == "c1-ease-cell":
+                amt_html = html.find(tag, {"class": classname})
+                for span in amt_html:
+                    return span.text.strip().replace("$", "").replace(",", "")
+                
+            return html.find(tag, {"class": classname}).text.strip()
+        except:
+            return None
             
-        return html.find(tag, {"class": classname}).text.strip()
+            
     
     def import_c1(self, filepath):
+        transactions = []
         with open(filepath, "r") as in_file:
             soup = BeautifulSoup(in_file.read(), "html.parser")
-            table = soup.find("div", {"class": "c1-ease-table__body"})
-            for row in table:
-                if not row or not row.text.split():
-                    break
-                month = self.find_item(row, "span", "c1-ease-txns-date-and-status__month")
-                day = self.find_item(row, "span", "c1-ease-txns-date-and-status__day")
-                desc = self.find_item(row, "div", "c1-ease-txns-description__description")
-                category = self.find_item(row, "span", "c1-ease-card-transactions-view-table__rewards-category")
-                amt = self.find_item(row, "c1-ease-cell", "c1-ease-card-transactions-view-table__amount")
-                print(month, day, desc, category, amt, "\n")
-                # break
+            tables = soup.find_all("div", {"class": "c1-ease-table__body"})
+            for table in tables:
+                for row in table:
+                    if not row or not row.text.split():
+                        continue
+                    
+                    category = self.find_item(row, "span", "c1-ease-card-transactions-view-table__rewards-category")
+                    if not category or category.lower() == "payment":
+                        continue
+                    
+                    month = self.find_item(row, "span", "c1-ease-txns-date-and-status__month")
+                    day = self.find_item(row, "span", "c1-ease-txns-date-and-status__day")
+                    desc = self.find_item(row, "div", "c1-ease-txns-description__description")
+                    amt = self.find_item(row, "c1-ease-cell", "c1-ease-card-transactions-view-table__amount")
+                    if category and month and day and desc and amt:
+                        transactions.append(Transaction(f"{month} {day}", desc, category, float(amt)))
+        
+        return transactions
         
     def import_disc(self, filepath):
         with open(filepath, "r") as in_file:
@@ -63,11 +76,14 @@ class TransactionExtractor:
             pass
     
     
-    def export_transactions(self, filepath):
+    def export_transactions(self, transactions, filepath):
+        for t in transactions:
+            print(t)
         with open(filepath, "w") as out_file:
             pass
         
         
 if __name__ == "__main__":
     t = TransactionExtractor()
-    t.extract(TransactionSource.C1, "statements/nov_23_s1.html", Month.NOV, 2023)
+    # t.extract(TransactionSource.C1, "statements/nov_23_s1.html", Month.NOV, 2023)
+    t.extract(TransactionSource.C1, "statements/bulk_2023.html", Month.NOV, 2023)
