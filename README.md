@@ -11,6 +11,7 @@
 - intake actual monthly income (salary + other income)
 - way to append comments to report (input as list) after viewing
 
+- graceful error handling (if goals don't exist, etc.)
 
 - generating sankeymatic chart
   - income -> expenses at each category, rest is saved

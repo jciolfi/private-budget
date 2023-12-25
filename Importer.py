@@ -70,7 +70,7 @@ class Importer:
                     desc = self.find_item_c1(row, "div", "c1-ease-txns-description__description")
                     category = self.find_item_c1(row, "span", "c1-ease-card-transactions-view-table__rewards-category")
                     if category and month and day and desc and amt:
-                        transactions[(month, year)].append(Transaction(f"{day} {month}", desc, category, float(amt)))
+                        transactions[(month, year)].append(Transaction(f"{day} {month} {year}", desc, category, float(amt)))
         
         return transactions
         
@@ -100,7 +100,7 @@ class Importer:
                     
                 # add salary figures
                 writer.writerow(["","Salary Income","Salary", salary])
-                writer.writerow(["","Capital Gains","Capital Gains", capital_gains])
+                writer.writerow(["","Investments","Investments", capital_gains])
                 writer.writerow(["","Other Income","Other Income", other_income])
         
         
