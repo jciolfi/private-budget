@@ -1,9 +1,10 @@
-from datetime import datetime
+import re
 import pandas as pd
-from classes import Month
 import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objects as go
+from datetime import datetime
+from classes import Month
 from calendar import monthrange
 from os.path import exists
 
@@ -19,12 +20,16 @@ class Reporter:
                 continue
             
             data = pd.read_csv(filepath)
-            data_income = data[data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
-            data_spend = data[~data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
+            data_income, data_spend = self.split_spend_income_df(data)
             return data, data_income, data_spend
             
         print(f"Could not find any filepaths: {', '.join(filepaths)}")
         exit(1)
+        
+    def split_spend_income_df(self, data):
+        data_income = data[data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
+        data_spend = data[~data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
+        return data_income, data_spend
     
     def round_money(self, money):
         return round(money, 2)
@@ -32,7 +37,7 @@ class Reporter:
     
     # ------------ BLURBS ------------
     def generate_cumulative_blurb(self, total_spend, days_in_month):
-        return f"You spent ${self.round_money(total_spend)} this month, for a daily average spend of ${self.round_money(total_spend / days_in_month)}."
+        return f"You spent ${self.round_money(total_spend)} this month, for an average daily spend of ${self.round_money(total_spend / days_in_month)}."
     
     def generate_spend_blurb(self, data, num_top=3):
         top_categories = data.sort_values(by='Amount', ascending=False).head(num_top)
@@ -40,13 +45,48 @@ class Reporter:
         for _, cat in top_categories.iterrows():
             res.append(f'{cat["Category"]} (${self.round_money(cat["Amount"])})')
         
-        return f"Your top categories were: {', '.join(res[:-1])}, and {res[-1]}."
+        return f"Your top spend categories were: {', '.join(res[:-1])}, and {res[-1]}."
     
     def generate_per_category_blurb(self, merged_df):
-        return f""
+        over, under = [], []
+        income_pattern = r"(income|salary|invest)"
+        for _, row in merged_df.iterrows():
+            diff = self.round_money(row["Amount_target"] - row["Amount_actual"])
+            category = row["Category"]
+            if re.search(income_pattern, category, re.IGNORECASE):
+                diff *= -1
+            
+            category_item = (abs(diff), category)
+            if diff >= 0:
+                over.append(category_item)
+            else:
+                under.append(category_item)
+        
+        over_items = list(map(lambda x: f"{x[1]} (${x[0]})", sorted(over, reverse=True)))
+        under_items = list(map(lambda x: f"{x[1]} (-${x[0]})", sorted(under, reverse=True)))
+        
+        over_str = under_str = ""
+        if len(over) > 0:
+            over_str = f"You earned more/spent less than targeted in the following categories: {', '.join(over_items[:-1])}, and {over_items[-1]}."
+
+        if len(under) > 0:
+            under_str = f"You earned less/spent more than targeted in the following categories: {', '.join(under_items[:-1])}, and {under_items[-1]}."
+            
+        return over_str, under_str
     
     def generate_totals_blurb(self, tot_target_income, tot_target_spend, tot_actual_income, tot_actual_spend):
-        return f""
+        spend_diff = tot_target_spend - tot_actual_spend
+        under_over_spend = "underspent" if spend_diff >= 0 else "overspent"
+        
+        income_diff = tot_actual_income - tot_target_income
+        under_over_income = "more" if income_diff >= 0 else "less"
+        
+        net_diff = tot_actual_income - tot_actual_spend
+        gain_loss = "gain" if net_diff >= 0 else "loss"
+        
+        return f"You had a net {gain_loss} of ${abs(self.round_money(net_diff))}.\
+            You {under_over_spend} by ${abs(self.round_money(spend_diff))},\
+            and you made ${abs(self.round_money(income_diff))} {under_over_income} than expected."
     
     # ------------ FIGURES ------------
     # create a piechart with the given data and title
@@ -100,6 +140,8 @@ class Reporter:
     
     def create_per_category_barchart(self, month, year, target, actual):
         merged_df = target.merge(actual, on="Category", how="outer", suffixes=("_target", "_actual"))
+        merged_df.fillna(0, inplace=True)
+        
         categories_fig = go.Figure(data=[
             go.Bar(name="target", x=merged_df["Category"], y=merged_df["Amount_target"]),
             go.Bar(name="actual", x=merged_df["Category"], y=merged_df["Amount_actual"])
@@ -135,7 +177,7 @@ class Reporter:
         target_spend_piechart_html, target_spend_piechart_blurb = self.create_spend_piechart(target_spend, f"Target Spend for {month.value[1]} {year}")
         actual_spend_piechart_html, actual_spend_piechart_blurb = self.create_spend_piechart(actual_spend, f"Actual Spend for {month.value[1]} {year}")
         actual_spend_linechart_html, actual_spend_linechart_blurb = self.create_cumulative_linechart(actual_spend_raw, f"Cumulative Spend for {month.value[1]} {year}")
-        per_category_html, per_category_blurb = self.create_per_category_barchart(month, year, target, actual)
+        per_category_html, (over_cateory_blurb, under_category_blurb) = self.create_per_category_barchart(month, year, target, actual)
         totals_html, totals_blurb = self.create_totals_barchart(month, year, target_income, target_spend, actual_income, actual_spend)
         
         # create report
@@ -172,7 +214,8 @@ class Reporter:
             <div class="chart-container">
                 <h2>Spend Comparison</h2>
                 {per_category_html}
-                <p>{per_category_blurb}</p>
+                <p>{over_cateory_blurb}</p>
+                <p>{under_category_blurb}</p>
             </div>
             <div class="chart-container">
                 <h2>Net Difference</h2>
