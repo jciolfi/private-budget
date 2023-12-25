@@ -11,7 +11,20 @@ class Reporter:
     def __init__(self):
         pass
     
-    # ------------ HELPERS ------------
+    # ------------ BLURBS ------------
+    def generate_cumulative_blurb(self, total_spend, days_in_month):
+        return f"You spent ${total_spend} this month, for a daily average spend of ${round(total_spend / days_in_month, 2)}."
+    
+    def generate_spend_blurb(self, data):
+        top_categories = data.sort_values(by='Amount', ascending=False).head(3)
+        # print(top_categories)
+        res = []
+        for _, cat in top_categories.iterrows():
+            res.append(f'{cat["Category"]} (${cat["Amount"]})')
+        result = "Your top categories were: " + ", ".join(res)
+        return result
+    
+    # ------------ FIGURES ------------
     # import data and split into income and expenses
     def split_spend_income(self, filepath):
         data = pd.read_csv(filepath)
@@ -22,7 +35,7 @@ class Reporter:
     # create a piechart with the given data and title
     def create_spend_piechart(self, data, title):
         fig = px.pie(data, values="Amount", names="Category", title=title)
-        return pio.to_html(fig, full_html=False, include_plotlyjs="cdn")
+        return pio.to_html(fig, full_html=False, include_plotlyjs="cdn"), self.generate_spend_blurb(data)
     
     # create linechart of cumulative spend per day for this month
     def create_cumulative_linechart(self, spend_data, title):
@@ -52,7 +65,6 @@ class Reporter:
             "Cumulative Spend": total_spend
         }])
         data = pd.concat([front_padding, data, end_padding], ignore_index=True)
-        print(data)
         
         fig = go.Figure()
         fig.update_layout(title=title, xaxis_title="Time", yaxis_title="Amount")
@@ -65,8 +77,7 @@ class Reporter:
                              name="Average Spend"))
         
         
-        
-        return pio.to_html(fig, full_html=False, include_plotlyjs="cdn")
+        return pio.to_html(fig, full_html=False, include_plotlyjs="cdn"), self.generate_cumulative_blurb(total_spend, days_in_month)
     
     
     # create bar charts to compare target vs. actual spend: per category and aggregated
@@ -91,6 +102,8 @@ class Reporter:
         return categories_html, totals_html
     
     
+    # ------------ MAIN ------------
+    
     # create report with data visualizations for target vs. actual spend
     def create_report(self, month, year=None):
         if not year:
@@ -101,9 +114,9 @@ class Reporter:
         actual_spend = actual_spend_raw.groupby("Category")["Amount"].sum().reset_index()
         actual = actual_raw.groupby("Category")["Amount"].sum().reset_index()
         
-        target_spend_piechart_html = self.create_spend_piechart(target_spend, f"Target Spend for {month.value[1]} {year}")
-        actual_spend_piechart_html = self.create_spend_piechart(actual_spend, f"Actual Spend for {month.value[1]} {year}")
-        actual_spend_linechart_html = self.create_cumulative_linechart(actual_spend_raw, f"Cumulative Spend for {month.value[1]} {year}")
+        target_spend_piechart_html, target_spend_piechart_blurb = self.create_spend_piechart(target_spend, f"Target Spend for {month.value[1]} {year}")
+        actual_spend_piechart_html, actual_spend_piechart_blurb = self.create_spend_piechart(actual_spend, f"Actual Spend for {month.value[1]} {year}")
+        actual_spend_linechart_html, actual_spend_linechart_blurb = self.create_cumulative_linechart(actual_spend_raw, f"Cumulative Spend for {month.value[1]} {year}")
         categories_html, totals_html = self.category_comparison_barcharts(month, year, target, target_income, target_spend, actual, actual_income, actual_spend)
         
         # create report
@@ -125,14 +138,17 @@ class Reporter:
             <div class="chart-container">
                 <h2>Cumulative Spend</h2>
                 {actual_spend_linechart_html}
+                <p>{actual_spend_linechart_blurb}</p>
             </div>
             <div class="chart-container">
                 <h2>Target Spend Breakdown</h2>
                 {target_spend_piechart_html}
+                <p>{target_spend_piechart_blurb}</p>
             </div>
             <div class="chart-container">
                 <h2>Actual Spend Breakdown</h2>
                 {actual_spend_piechart_html}
+                <p>{actual_spend_piechart_blurb}</p>
             </div>
             <div class="chart-container">
                 <h2>Spend Comparison</h2>
