@@ -1,4 +1,5 @@
-import datetime, csv
+import csv, re, calendar
+from datetime import datetime
 from os.path import exists
 from classes import Transaction, TransactionSource
 from bs4 import BeautifulSoup
@@ -15,7 +16,7 @@ class Importer:
     # extract transactions based on bank
     def extract(self, source, filepath, year):            
         if not year:
-            year = datetime.datetime.now().date().year
+            year = datetime.now().date().year
             
         transactions = None
         match source:
@@ -74,8 +75,28 @@ class Importer:
         
         return transactions
         
+    
     def import_disc(self, filepath):
-        raise NotImplementedError("Discover not implemented")
+        transactions = defaultdict(list)
+        with open(filepath, "r") as in_file:
+            soup = BeautifulSoup(in_file.read(), "html.parser")
+            table = soup.find("table", {"id": "transactions-table"}).find("tbody")
+            for row in table.find_all("tr"):
+                if not row.get('id') or not re.match(r'transaction-\d+', row['id']):
+                    continue
+                
+                amount = float(row.find("td", {"class": "amt"}).text.replace("$", ""))
+                if amount < 0:
+                    continue
+                
+                date_str = row.find("td", {"class": "trans-date"}).text
+                date = datetime.strptime(date_str, "%m/%d/%y")
+                day, month, year = date.day, calendar.month_abbr[date.month], date.year
+                desc = row.find("td", {"class": "desc"}).find("a", {"class": "transaction-detail-toggler"}).text.strip()
+                category = row.find("td", {"class": "ctg"}).text
+                transactions[(month, year)].append(Transaction(f"{day} {month} {year}", desc, category, amount))
+        
+        return transactions
     
     def import_sofi(self, filepath):
         raise NotImplementedError("SoFi not implemented")
@@ -97,15 +118,17 @@ class Importer:
                     writer.writerow(["Date", "Description", "Category", "Amount"])
                 for t in sorted(transactions[(month, year)], key=lambda t: t.date):
                     writer.writerow([t.date, t.desc, t.category, t.amt])
-                    
+
                 # add salary figures
-                writer.writerow(["","Salary Income","Salary", salary])
-                writer.writerow(["","Investments","Investments", capital_gains])
-                writer.writerow(["","Other Income","Other Income", other_income])
+                if salary != None and capital_gains != None and other_income != None:
+                    writer.writerow(["","Salary Income","Salary", salary])
+                    writer.writerow(["","Investments","Investments", capital_gains])
+                    writer.writerow(["","Other Income","Other Income", other_income])
         
         
 if __name__ == "__main__":
     i = Importer()
     # t.extract(TransactionSource.C1, "statements/nov_23_s1.html", Month.NOV, 2023)
     # i.extract(TransactionSource.C1, "statements/bulk_2023.html")
-    i.run(TransactionSource.C1, "statements/bulk_2023.html", None, 0, 0, 400)
+    # i.run(TransactionSource.C1, "statements/bulk_2023.html", None, 0, 0, 400)
+    i.run(TransactionSource.DISC, "statements/disc_nov_2023.html", None, None, None, None)

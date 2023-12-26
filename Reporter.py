@@ -74,10 +74,10 @@ class Reporter:
         
         over_str = under_str = ""
         if len(over) > 0:
-            over_str = f"You earned more/spent less than targeted in the following categories: {', '.join(over_items[:-1])}, and {over_items[-1]}."
+            over_str = f"You were on target in the following categories: {', '.join(over_items[:-1])}, and {over_items[-1]}."
 
         if len(under) > 0:
-            under_str = f"You earned less/spent more than targeted in the following categories: {', '.join(under_items[:-1])}, and {under_items[-1]}."
+            under_str = f"You were off target in the following categories: {', '.join(under_items[:-1])}, and {under_items[-1]}."
             
         return over_str, under_str
     
