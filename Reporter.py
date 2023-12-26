@@ -10,7 +10,14 @@ from os.path import exists
 
 class Reporter:
     def __init__(self):
-        pass
+        self.category_colors = {
+            "Dining": "red",
+            "Grocery": "orange",
+            "Merchandise": "yellow",
+            "Gas/Automotive": "brown",
+            "Other Travel": "green",
+            "Entertainment": "pink"
+        }
     
     # ------------ HELPERS ------------
     # import data and split into income and expenses
@@ -91,7 +98,7 @@ class Reporter:
     # ------------ FIGURES ------------
     # create a piechart with the given data and title
     def create_spend_piechart(self, data, title):
-        fig = px.pie(data, values="Amount", names="Category", title=title)
+        fig = px.pie(data, values="Amount", names="Category", title=title, color="Category", color_discrete_map=self.category_colors)
         return pio.to_html(fig, full_html=False, include_plotlyjs="cdn"), self.generate_spend_blurb(data)
     
     
@@ -233,4 +240,10 @@ class Reporter:
 if __name__ == "__main__":
     r = Reporter()
     
+    r.create_report(Month.MAY, 2023)
+    r.create_report(Month.JUN, 2023)
+    r.create_report(Month.JUL, 2023)
+    r.create_report(Month.AUG, 2023)
+    r.create_report(Month.SEP, 2023)
     r.create_report(Month.NOV, 2023)
+    r.create_report(Month.DEC, 2023)

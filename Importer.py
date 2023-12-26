@@ -108,4 +108,4 @@ if __name__ == "__main__":
     i = Importer()
     # t.extract(TransactionSource.C1, "statements/nov_23_s1.html", Month.NOV, 2023)
     # i.extract(TransactionSource.C1, "statements/bulk_2023.html")
-    i.run(TransactionSource.C1, "statements/bulk_2023.html", None, 1, 2, 3)
+    i.run(TransactionSource.C1, "statements/bulk_2023.html", None, 0, 0, 400)
