@@ -1,4 +1,4 @@
-import re
+import re, json
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
@@ -10,14 +10,13 @@ from os.path import exists
 
 class Reporter:
     def __init__(self):
-        self.category_colors = {
-            "Dining": "red",
-            "Grocery": "orange",
-            "Merchandise": "yellow",
-            "Gas/Automotive": "brown",
-            "Other Travel": "green",
-            "Entertainment": "pink"
-        }
+        self.category_mappings = {}
+        self.category_colors = {}
+        if exists(mappings.json):
+            with open("mappings.json", "r") as file:
+                mappings = json.load(file)
+                self.category_mapping = mappings["Mappings"]
+                self.category_colors = mappings["Colors"]
     
     # ------------ HELPERS ------------
     # import data and split into income and expenses
@@ -27,16 +26,13 @@ class Reporter:
                 continue
             
             data = pd.read_csv(filepath)
-            data_income, data_spend = self.split_spend_income_df(data)
+            data["Category"] = data["Category"].replace(self.category_mappings)
+            data_income = data[data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
+            data_spend = data[~data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
             return data, data_income, data_spend
             
-        print(f"Could not find any filepaths: {', '.join(filepaths)}")
+        print(f"Could not find any existing files: {', '.join(filepaths)}")
         exit(1)
-        
-    def split_spend_income_df(self, data):
-        data_income = data[data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
-        data_spend = data[~data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
-        return data_income, data_spend
     
     def round_money(self, money):
         return round(money, 2)
@@ -134,13 +130,12 @@ class Reporter:
         fig = go.Figure()
         fig.update_layout(title=title, xaxis_title="Time", yaxis_title="Amount")
         
-        fig.add_trace(go.Scatter(x=data["Date"], y=data["Cumulative Spend"], mode="lines", name="Actual Spend"))
         fig.add_trace(go.Scatter(x=[data["Date"].iloc[0].replace(day=1), data["Date"].iloc[0].replace(day=days_in_month)], 
                              y=[0, total_spend],
                              mode="lines",
-                             line=dict(color="red", dash="dash"),
+                             line=dict(dash="dash"),
                              name="Average Spend"))
-        
+        fig.add_trace(go.Scatter(x=data["Date"], y=data["Cumulative Spend"], mode="lines", name="Actual Spend"))
         
         return pio.to_html(fig, full_html=False, include_plotlyjs="cdn"), self.generate_cumulative_blurb(total_spend, days_in_month)
     

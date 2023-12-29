@@ -1,0 +1,24 @@
+{
+    "Mappings": {
+        "Automotive": "Gas/Automotive",
+        "Department Stores": "Merchandise",
+        "Education": "Other",
+        "Gasoline": "Gas/Automotive",
+        "Government Services": "Other",
+        "Home Improvement": "Other",
+        "Medical Services": "Other",
+        "Restaurants": "Dining",
+        "Services": "Other",
+        "Supermarkets": "Grocery",
+        "Travel/ Entertainment": "Other Travel",
+        "Wholesale Clubs": "Grocery"
+    },
+    "Colors": {
+        "Dining": "red",
+        "Grocery": "orange",
+        "Merchandise": "yellow",
+        "Gas/Automotive": "brown",
+        "Other Travel": "green",
+        "Entertainment": "pink"
+    }
+}
