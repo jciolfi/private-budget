@@ -2,10 +2,18 @@ from enum import Enum
 from attr import dataclass
 
 class TransactionSource(Enum):
-    C1 = (1, "Capital One")
-    DISC = (2, "Discover")
-    SOFI = (3, "SoFi")
-    BOFA = (4, "Bank of America")
+    C1 = (1, "C1", "Capital One")
+    DISC = (2, "Disc", "Discover")
+    SOFI = (3, "SoFi", "SoFi")
+    BOFA = (4, "BOFA", "Bank of America")
+    
+    @classmethod
+    def from_value(cls, value):
+        value = value.lower()
+        for member in cls:
+            if member.value[0] == str(value) or member.value[1].lower() == value or member.value[2].lower() == value:
+                return member
+        raise ValueError(f"{value} is not a valid Month")
 
 class Month(Enum):
     JAN = (1, "Jan", "January")
@@ -20,6 +28,15 @@ class Month(Enum):
     OCT = (10, "Oct", "October")
     NOV = (11, "Nov", "November")
     DEC = (12, "Dec", "December")
+    
+    @classmethod
+    def from_value(cls, value):
+        value = value.lower()
+        for member in cls:
+            if str(member.value[0]) == value or member.value[1].lower() == value or member.value[2].lower() == value:
+                return member
+        raise ValueError(f"{value} is not a valid Month")
+
     
 @dataclass
 class Transaction:

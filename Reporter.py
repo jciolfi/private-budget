@@ -38,7 +38,6 @@ class Reporter:
                 continue
             
             df["Category"] = df["Category"].replace(self.category_mappings)
-            
             df_income = df[df["Category"].str.contains("income|salary|invest", case=False, regex=True)]
             df_spend = df[~df["Category"].str.contains("income|salary|invest", case=False, regex=True)]
             return df, df_income, df_spend
@@ -177,12 +176,13 @@ class Reporter:
     
     
     # ------------ MAIN ------------
-    
-    # create report with data visualizations for target vs. actual spend
-    def create_report(self, month, year=None):
+    def run(self, month, year=None):
         if not year:
             year = datetime.now().date().year
-        
+        self.create_report(month, year)
+    
+    # create report with data visualizations for target vs. actual spend
+    def create_report(self, month, year):
         target, target_income, target_spend = self.split_spend_income([f"goals/{month.value[1]}_{year}.csv", "input.json"])
         actual_raw, actual_income, actual_spend_raw = self.split_spend_income([f"actual/{month.value[1]}_{year}.csv"])
         actual_spend = actual_spend_raw.groupby("Category")["Amount"].sum().reset_index()

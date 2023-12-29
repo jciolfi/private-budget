@@ -1,5 +1,7 @@
-import Reporter, Importer
 import argparse
+from Reporter import Reporter
+from Importer import Importer
+from classes import TransactionSource
 
 def get_args():
     parser = argparse.ArgumentParser(description="Budgeting Tool")
@@ -17,7 +19,14 @@ if __name__ == "__main__":
     i = Importer()
     r = Reporter()
     
-    i.extract(args.bank, args.filepath, args.year)
+    try:
+        source = TransactionSource.from_value(args.bank)
+    except:
+        print(f"Unknown source: '{args.bank}'")
+        exit(1)
+    
+    i.run(source, args.filepath, args.year, args.salary, args.capital_gains, args.other_income)
+    
     
     
     

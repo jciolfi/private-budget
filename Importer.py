@@ -12,6 +12,7 @@ class Importer:
     def run(self, source, filepath, year, salary, capital_gains, other_income):
         transactions = self.extract(source, filepath, year)
         self.export_transactions(transactions, salary, capital_gains, other_income)
+        
     
     # extract transactions based on bank
     def extract(self, source, filepath, year):            
@@ -120,11 +121,12 @@ class Importer:
                     writer.writerow([t.date, t.desc, t.category, t.amt])
 
                 # add salary figures
-                if salary != None and capital_gains != None and other_income != None:
+                if salary != None:
                     writer.writerow(["","Salary Income","Salary", salary])
+                if capital_gains != None:
                     writer.writerow(["","Investments","Investments", capital_gains])
+                if other_income != None:
                     writer.writerow(["","Other Income","Other Income", other_income])
-        
         
 if __name__ == "__main__":
     i = Importer()
