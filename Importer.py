@@ -1,7 +1,7 @@
 import csv, re, calendar
 from datetime import datetime
 from os.path import exists
-from classes import Transaction, TransactionSource
+from classes import Transaction, TransactionSource, Month
 from bs4 import BeautifulSoup
 from collections import defaultdict 
 
@@ -12,6 +12,7 @@ class Importer:
     def run(self, source, filepath, year, salary, capital_gains, other_income):
         transactions = self.extract(source, filepath, year)
         self.export_transactions(transactions, salary, capital_gains, other_income)
+        return list(map(lambda t: (Month.from_value(t[0]), t[1]), transactions.keys()))
         
     
     # extract transactions based on bank

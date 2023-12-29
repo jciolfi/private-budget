@@ -25,7 +25,9 @@ if __name__ == "__main__":
         print(f"Unknown source: '{args.bank}'")
         exit(1)
     
-    i.run(source, args.filepath, args.year, args.salary, args.capital_gains, args.other_income)
+    times = i.run(source, args.filepath, args.year, args.salary, args.capital_gains, args.other_income)
+    for month, year in times:
+        r.run(month, year)
     
     
     
