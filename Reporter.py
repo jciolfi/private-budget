@@ -12,10 +12,12 @@ class Reporter:
     def __init__(self):
         self.category_mappings = {}
         self.category_colors = {}
-        if exists(mappings.json):
-            with open("mappings.json", "r") as file:
+        
+        input_file = "input.json"
+        if exists(input_file):
+            with open(input_file, "r") as file:
                 mappings = json.load(file)
-                self.category_mapping = mappings["Mappings"]
+                self.category_mappings = mappings["Mappings"]
                 self.category_colors = mappings["Colors"]
     
     # ------------ HELPERS ------------
@@ -25,11 +27,21 @@ class Reporter:
             if not exists(filepath):
                 continue
             
-            data = pd.read_csv(filepath)
-            data["Category"] = data["Category"].replace(self.category_mappings)
-            data_income = data[data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
-            data_spend = data[~data["Category"].str.contains("income|salary|invest", case=False, regex=True)]
-            return data, data_income, data_spend
+            filetype = filepath[filepath.rfind(".") + 1:]
+            if filetype == "csv":    
+                df = pd.read_csv(filepath)
+            elif filetype == "json":
+                with open(filepath, "r") as file:
+                    data = json.load(file)["Budget"]
+                df = pd.DataFrame({"Category": data.keys(), "Amount": data.values()})
+            else:
+                continue
+            
+            df["Category"] = df["Category"].replace(self.category_mappings)
+            
+            df_income = df[df["Category"].str.contains("income|salary|invest", case=False, regex=True)]
+            df_spend = df[~df["Category"].str.contains("income|salary|invest", case=False, regex=True)]
+            return df, df_income, df_spend
             
         print(f"Could not find any existing files: {', '.join(filepaths)}")
         exit(1)
@@ -171,7 +183,7 @@ class Reporter:
         if not year:
             year = datetime.now().date().year
         
-        target, target_income, target_spend = self.split_spend_income([f"goals/{month.value[1]}_{year}.csv", "goals/default_goals.csv"])
+        target, target_income, target_spend = self.split_spend_income([f"goals/{month.value[1]}_{year}.csv", "input.json"])
         actual_raw, actual_income, actual_spend_raw = self.split_spend_income([f"actual/{month.value[1]}_{year}.csv"])
         actual_spend = actual_spend_raw.groupby("Category")["Amount"].sum().reset_index()
         actual = actual_raw.groupby("Category")["Amount"].sum().reset_index()
@@ -235,10 +247,10 @@ class Reporter:
 if __name__ == "__main__":
     r = Reporter()
     
-    r.create_report(Month.MAY, 2023)
-    r.create_report(Month.JUN, 2023)
-    r.create_report(Month.JUL, 2023)
-    r.create_report(Month.AUG, 2023)
-    r.create_report(Month.SEP, 2023)
+    # r.create_report(Month.MAY, 2023)
+    # r.create_report(Month.JUN, 2023)
+    # r.create_report(Month.JUL, 2023)
+    # r.create_report(Month.AUG, 2023)
+    # r.create_report(Month.SEP, 2023)
     r.create_report(Month.NOV, 2023)
-    r.create_report(Month.DEC, 2023)
+    # r.create_report(Month.DEC, 2023)

@@ -20,5 +20,17 @@
         "Gas/Automotive": "brown",
         "Other Travel": "green",
         "Entertainment": "pink"
+    },
+    "Budget": {
+        "Salary": 0,
+        "Investments": 0,
+        "Other Income": 400,
+        "Dining": 600,
+        "Grocery": 400,
+        "Other Travel": 50,
+        "Merchandise": 100,
+        "Gas/Automotive": 50,
+        "Entertainment": 50,
+        "Other": 150
     }
 }
