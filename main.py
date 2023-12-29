@@ -28,6 +28,10 @@ if __name__ == "__main__":
     times = i.run(source, args.filepath, args.year, args.salary, args.capital_gains, args.other_income)
     for month, year in times:
         r.run(month, year)
+        print(f"Writing report for {month.value[2]}, {year}...")
+        
+    if len(times) > 0:
+        print("Done!")
     
     
     
