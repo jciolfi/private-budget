@@ -56,8 +56,8 @@ class Reporter:
     def generate_spend_blurb(self, data, num_top=3):
         top_categories = data.sort_values(by='Amount', ascending=False).head(num_top)
         res = []
-        for _, cat in top_categories.iterrows():
-            res.append(f'{cat["Category"]} (${self.round_money(cat["Amount"])})')
+        for _, row in top_categories.iterrows():
+            res.append(f'{row["Category"]} (${self.round_money(row["Amount"])})')
         
         return f"Your top spend categories were: {', '.join(res[:-1])}, and {res[-1]}."
     
@@ -174,6 +174,28 @@ class Reporter:
         chart_html = pio.to_html(totals_fig, full_html=False, include_plotlyjs="cdn")
         return chart_html, self.generate_totals_blurb(tot_target_income, tot_target_spend, tot_actual_income, tot_actual_spend)
     
+    def generate_sankeymatic_chart(self, actual_income, actual_spend):
+        chart_contents = []
+        
+        total_income = self.round_money(actual_income["Amount"].sum())
+        total_spend = self.round_money(actual_spend["Amount"].sum())
+        savings = total_income - total_spend
+        
+        # append income
+        chart_contents.append(f"Income [{total_income}]")
+        
+        # append spend by category
+        for _, row in actual_spend.iterrows():
+            chart_contents.append(f"Income [{self.round_money(row['Amount'])}] {row['Category']}")
+            
+        # append savings or overdraft
+        if savings > 0:
+            chart_contents.append(f"Income [{savings}] Savings")
+        else:
+            chart_contents.insert(0, f"Bank [{-savings}] Income")
+        
+        return "<br>\n".join(chart_contents)
+        
     
     # ------------ MAIN ------------
     def run(self, month, year=None):
@@ -193,6 +215,7 @@ class Reporter:
         actual_spend_linechart_html, actual_spend_linechart_blurb = self.create_cumulative_linechart(actual_spend_raw, f"Cumulative Spend for {month.value[1]} {year}")
         per_category_html, (over_cateory_blurb, under_category_blurb) = self.create_per_category_barchart(month, year, target, actual)
         totals_html, totals_blurb = self.create_totals_barchart(month, year, target_income, target_spend, actual_income, actual_spend)
+        sankeymatic_chart = self.generate_sankeymatic_chart(actual_income, actual_spend)
         
         # create report
         report = f"""
@@ -206,6 +229,12 @@ class Reporter:
                     margin: auto;
                     width: 66%;
                     font-family: verdana, georgia;
+                }}
+                .center-iframe {{
+                    display: flex;
+                    justify-content: center; /* Horizontally center */
+                    align-items: center; /* Vertically center */
+                    height: 100vh; /* Set the height to fill the entire viewport */
                 }}
             </style>
         </head>
@@ -235,6 +264,17 @@ class Reporter:
                 <h2>Net Difference</h2>
                 {totals_html}
                 <p>{totals_blurb}</p>
+            </div>
+            <div class="chart-container">
+                <h2>Sankeymatic (Flow) Chart</h2>
+                <p>Paste the following below in <a href="https://sankeymatic.com/build/">SankeyMATIC</a> to view your expenses as a flow chart!</p>
+                <p>{sankeymatic_chart}</p>
+                
+            </div>
+            <div class="chart-container center-iframe">
+                <iframe src="https://sankeymatic.com/build/" width="100%" height="100%">
+                    <p>Your browser does not support iframes.</p>
+                </iframe>
             </div>
         </body>
         </html>

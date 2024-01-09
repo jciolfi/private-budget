@@ -15,6 +15,7 @@ class TransactionSource(Enum):
                 return member
         raise ValueError(f"{value} is not a valid Month")
 
+
 class Month(Enum):
     JAN = (1, "Jan", "January")
     FEB = (2, "Feb", "February")

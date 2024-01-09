@@ -8,10 +8,8 @@
 - generate to sankeymatic?
 
 # TODOs
+- writing this readme
 - way to append comments to report (input as list) after viewing
-- uniting categories across c1/discover (travel/entertainment -> ??)
-- convert keys to date objects in importer instead of strings/tuples of day/month/year
-  - use num of month instead of month abbr
-
-- generating sankeymatic chart
-  - income -> expenses at each category, rest is saved
+- add custom cols to actual expenses (brainstorm)
+  - necessity score from 1-5?
+  - notes column?
