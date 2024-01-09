@@ -269,13 +269,13 @@ class Reporter:
                 <h2>Sankeymatic (Flow) Chart</h2>
                 <p>Paste the following below in <a href="https://sankeymatic.com/build/">SankeyMATIC</a> to view your expenses as a flow chart!</p>
                 <p>{sankeymatic_chart}</p>
-                
+                <div class="center-iframe">
+                    <iframe src="https://sankeymatic.com/build/" width="100%" height="100%">
+                        <p>Your browser does not support iframes.</p>
+                    </iframe>
+                </div>    
             </div>
-            <div class="chart-container center-iframe">
-                <iframe src="https://sankeymatic.com/build/" width="100%" height="100%">
-                    <p>Your browser does not support iframes.</p>
-                </iframe>
-            </div>
+            
         </body>
         </html>
         """
