@@ -181,18 +181,18 @@ class Reporter:
         total_spend = self.round_money(actual_spend["Amount"].sum())
         savings = total_income - total_spend
         
-        # append income
-        chart_contents.append(f"Income [{total_income}]")
+        # append savings or overdraft
+        if savings > 0:
+            chart_contents.append(f"Income [{total_spend}] Spending")
+            chart_contents.append(f"Income [{savings}] Savings")
+        else:
+            chart_contents.append(f"Bank [{-savings}] Spending")
+            chart_contents.append(f"Income [{total_income}] Spending")
         
         # append spend by category
         for _, row in actual_spend.iterrows():
-            chart_contents.append(f"Income [{self.round_money(row['Amount'])}] {row['Category']}")
+            chart_contents.append(f"Spending [{self.round_money(row['Amount'])}] {row['Category']}")
             
-        # append savings or overdraft
-        if savings > 0:
-            chart_contents.append(f"Income [{savings}] Savings")
-        else:
-            chart_contents.insert(0, f"Bank [{-savings}] Income")
         
         return "<br>\n".join(chart_contents)
         
