@@ -9,7 +9,7 @@ class TransactionSource(Enum):
     
     @classmethod
     def from_value(cls, value):
-        value = value.lower()
+        value = str(value).lower()
         for member in cls:
             if member.value[0] == str(value) or member.value[1].lower() == value or member.value[2].lower() == value:
                 return member
@@ -32,7 +32,7 @@ class Month(Enum):
     
     @classmethod
     def from_value(cls, value):
-        value = value.lower()
+        value = str(value).lower()
         for member in cls:
             if str(member.value[0]) == value or member.value[1].lower() == value or member.value[2].lower() == value:
                 return member

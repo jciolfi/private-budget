@@ -112,7 +112,7 @@ class Reporter:
     # create linechart of cumulative spend per day for this month
     def create_cumulative_linechart(self, spend_data, title):
         data = spend_data.copy()
-        data["Date"] = pd.to_datetime(data["Date"], format="%d %b %Y")
+        data["Date"] = pd.to_datetime(data["Date"], format="%d %m %Y")
         data.sort_values("Date", inplace=True)
         data["Cumulative Spend"] = data["Amount"].cumsum()
         
@@ -205,8 +205,8 @@ class Reporter:
     
     # create report with data visualizations for target vs. actual spend
     def create_report(self, month, year):
-        target, target_income, target_spend = self.split_spend_income([f"goals/{month.value[1]}_{year}.csv", "input.json"])
-        actual_raw, actual_income, actual_spend_raw = self.split_spend_income([f"actual/{month.value[1]}_{year}.csv"])
+        target, target_income, target_spend = self.split_spend_income([f"goals/{month.value[0]}_{year}.csv", "input.json"])
+        actual_raw, actual_income, actual_spend_raw = self.split_spend_income([f"actual/{month.value[0]}_{year}.csv"])
         actual_spend = actual_spend_raw.groupby("Category")["Amount"].sum().reset_index()
         actual = actual_raw.groupby("Category")["Amount"].sum().reset_index()
         
@@ -280,7 +280,7 @@ class Reporter:
         </html>
         """
         
-        with open(f"reports/{month.value[1]}_{year}.html", "w") as out_file:
+        with open(f"reports/{month.value[0]}_{year}.html", "w") as out_file:
             out_file.write(report)
         
         

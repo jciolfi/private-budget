@@ -68,7 +68,12 @@ class Importer:
                     if not amt or float(amt) < 0:
                         continue
                     
-                    month = self.find_item_c1(row, "span", "c1-ease-txns-date-and-status__month")
+                    month_abbr = self.find_item_c1(row, "span", "c1-ease-txns-date-and-status__month")
+                    if month_abbr == None:
+                        # if transaction is still pending, no post date shown
+                        continue
+                    
+                    month = datetime.strptime(month_abbr, "%b").month
                     day = self.find_item_c1(row, "span", "c1-ease-txns-date-and-status__day")
                     desc = self.find_item_c1(row, "div", "c1-ease-txns-description__description")
                     category = self.find_item_c1(row, "span", "c1-ease-card-transactions-view-table__rewards-category")
@@ -93,7 +98,7 @@ class Importer:
                 
                 date_str = row.find("td", {"class": "trans-date"}).text
                 date = datetime.strptime(date_str, "%m/%d/%y")
-                day, month, year = date.day, calendar.month_abbr[date.month], date.year
+                day, month, year = date.day, date.month, date.year
                 desc = row.find("td", {"class": "desc"}).find("a", {"class": "transaction-detail-toggler"}).text.strip()
                 category = row.find("td", {"class": "ctg"}).text
                 transactions[(month, year)].append(Transaction(f"{day} {month} {year}", desc, category, amount))

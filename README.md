@@ -8,10 +8,10 @@
 - generate to sankeymatic?
 
 # TODOs
-- writing this readme
-- way to append comments to report (input as list) after viewing
+- styling (colors, spacing, fonts, page layout, etc.)
+  - separate to invidual .css class - tailwind?
 - add custom cols to actual expenses (brainstorm)
   - necessity score from 1-5?
   - notes column?
-- styling (colors, spacing, fonts, page layout, etc.)
-  - separate to invidual .css class - tailwind?
+- way to append comments to report (input as list) after viewing (javascript?)
+- writing this readme
