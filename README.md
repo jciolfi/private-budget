@@ -13,3 +13,5 @@
 - add custom cols to actual expenses (brainstorm)
   - necessity score from 1-5?
   - notes column?
+- styling (colors, spacing, fonts, page layout, etc.)
+  - separate to invidual .css class - tailwind?
