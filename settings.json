@@ -14,12 +14,14 @@
         "Wholesale Clubs": "Grocery"
     },
     "Colors": {
-        "Dining": "red",
-        "Grocery": "orange",
-        "Merchandise": "yellow",
-        "Gas/Automotive": "brown",
-        "Other Travel": "green",
-        "Entertainment": "pink"
+        "_palette": "colorkit.co/palette/1fd2dc-37c2ca-4eb2b8-66a2a6-7d9394-958382-ac7370-c4635e-db534c-f3433a #1fd2dc, #37c2ca, #4eb2b8, #66a2a6, #7d9394, #958382, #ac7370, #c4635e, #db534c and #f3433a.",
+        "Dining": "#f3433a",
+        "Merchandise": "#db534c",
+        "Other Travel": "#c4635e",
+        "Entertainment": "#ac7370",
+        "Gas/Automotive": "#4eb2b8",
+        "Grocery": "#1fd2dc",
+        "Other": "#7d9394"
     },
     "Budget": {
         "Salary": 0,

@@ -13,9 +13,9 @@ class Reporter:
         self.category_mappings = {}
         self.category_colors = {}
         
-        input_file = "input.json"
-        if exists(input_file):
-            with open(input_file, "r") as file:
+        settings = "settings.json"
+        if exists(settings):
+            with open(settings, "r") as file:
                 mappings = json.load(file)
                 self.category_mappings = mappings["Mappings"]
                 self.category_colors = mappings["Colors"]
@@ -144,9 +144,9 @@ class Reporter:
         fig.add_trace(go.Scatter(x=[data["Date"].iloc[0].replace(day=1), data["Date"].iloc[0].replace(day=days_in_month)], 
                              y=[0, total_spend],
                              mode="lines",
-                             line=dict(dash="dash"),
+                             line={"dash": "dash", "color": "#37c2ca"},
                              name="Average Spend"))
-        fig.add_trace(go.Scatter(x=data["Date"], y=data["Cumulative Spend"], mode="lines", name="Actual Spend"))
+        fig.add_trace(go.Scatter(x=data["Date"], y=data["Cumulative Spend"], mode="lines", name="Actual Spend", line={"color": "#db534c"}))
         
         return pio.to_html(fig, full_html=False, include_plotlyjs="cdn"), self.generate_cumulative_blurb(total_spend, days_in_month)
     
@@ -156,26 +156,29 @@ class Reporter:
         merged_df.fillna(0, inplace=True)
         
         categories_fig = go.Figure(data=[
-            go.Bar(name="target", x=merged_df["Category"], y=merged_df["Amount_target"]),
-            go.Bar(name="actual", x=merged_df["Category"], y=merged_df["Amount_actual"])
+            go.Bar(name="target", x=merged_df["Category"], y=merged_df["Amount_target"], marker={"color": "#37c2ca"}),
+            go.Bar(name="actual", x=merged_df["Category"], y=merged_df["Amount_actual"], marker={"color": "#db534c"})
         ])
         categories_fig.update_layout(barmode="group", title=f"Target vs. Actual Spend for {month.value[1]} {year}", xaxis_title="Category", yaxis_title="Amount")
         chart_html = pio.to_html(categories_fig, full_html=False, include_plotlyjs="cdn")
         return chart_html, self.generate_per_category_blurb(merged_df)
-        
+    
+    
     def create_totals_barchart(self, month, year, target_income, target_spend, actual_income, actual_spend):
         tot_target_income, tot_target_spend = target_income["Amount"].sum(), target_spend["Amount"].sum()
         tot_actual_income, tot_actual_spend = actual_income["Amount"].sum(), actual_spend["Amount"].sum()
         totals_fig = go.Figure(data=[
-            go.Bar(name="target", x=["Income", "Spend"], y=[tot_target_income, tot_target_spend]),
-            go.Bar(name="actual", x=["Income", "Spend"], y=[tot_actual_income, tot_actual_spend])
+            go.Bar(name="target", x=["Income", "Spend"], y=[tot_target_income, tot_target_spend], marker={"color": "#37c2ca"}),
+            go.Bar(name="actual", x=["Income", "Spend"], y=[tot_actual_income, tot_actual_spend], marker={"color": "#db534c"})
         ])
         totals_fig.update_layout(barmode="group", title=f"Net Difference for {month.value[1]} {year}", xaxis_title="Category", yaxis_title="Amount")
         chart_html = pio.to_html(totals_fig, full_html=False, include_plotlyjs="cdn")
         return chart_html, self.generate_totals_blurb(tot_target_income, tot_target_spend, tot_actual_income, tot_actual_spend)
     
+    
     def generate_sankeymatic_chart(self, actual_income, actual_spend):
         chart_contents = []
+        colors = [":Income #4c956c", ":Spending #7a71f8"]
         
         total_income = self.round_money(actual_income["Amount"].sum())
         total_spend = self.round_money(actual_spend["Amount"].sum())
@@ -185,16 +188,21 @@ class Reporter:
         if savings > 0:
             chart_contents.append(f"Income [{total_spend}] Spending")
             chart_contents.append(f"Income [{savings}] Savings")
+            colors.append(":Savings #2c6e49")
         else:
             chart_contents.append(f"Bank [{-savings}] Spending")
             chart_contents.append(f"Income [{total_income}] Spending")
+            colors.append(":Bank #79021c")
         
         # append spend by category
         for _, row in actual_spend.iterrows():
-            chart_contents.append(f"Spending [{self.round_money(row['Amount'])}] {row['Category']}")
+            category, amount = row["Category"], self.round_money(row["Amount"])
+            chart_contents.append(f"Spending [{amount}] {category}")
             
+            if category in self.category_colors:
+                colors.append(f":{category} {self.category_colors[category]}")
         
-        return "<br>\n".join(chart_contents)
+        return "<br>\n".join(chart_contents + colors)
         
     
     # ------------ MAIN ------------
@@ -205,7 +213,7 @@ class Reporter:
     
     # create report with data visualizations for target vs. actual spend
     def create_report(self, month, year):
-        target, target_income, target_spend = self.split_spend_income([f"goals/{month.value[0]}_{year}.csv", "input.json"])
+        target, target_income, target_spend = self.split_spend_income([f"goals/{month.value[0]}_{year}.csv", "settings.json"])
         actual_raw, actual_income, actual_spend_raw = self.split_spend_income([f"actual/{month.value[0]}_{year}.csv"])
         actual_spend = actual_spend_raw.groupby("Category")["Amount"].sum().reset_index()
         actual = actual_raw.groupby("Category")["Amount"].sum().reset_index()
